@@ -107,10 +107,6 @@ export class SysMenuService {
   async findChildMenus(mid: number): Promise<any> {
     const allMenus: any = [];
     const menus = await this.menuRepository.find({ where: { parentId: mid } });
-    // if (_.isEmpty(menus)) {
-    //   return allMenus;
-    // }
-    // const childMenus: any = [];
     for (let i = 0; i < menus.length; i++) {
       if (menus[i].type !== 2) {
         // 子目录下是菜单或目录，继续往下级查找

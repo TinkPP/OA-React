@@ -26,9 +26,13 @@ export default class SysDailyPlan extends BaseEntity {
 
   @Column({ name: 'completion_degree', nullable: true })
   @ApiProperty()
-  completionDegree: number;
+  completion_degree: number;
 
   @Column({ name: 'user_id' })
   @ApiProperty()
   userId: number;
+
+  @Column({ name: 'date' })
+  @ApiProperty()
+  date: string;
 }

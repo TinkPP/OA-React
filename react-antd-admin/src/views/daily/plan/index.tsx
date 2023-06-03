@@ -1,6 +1,7 @@
 import './index.less';
 
 import { PlusOutlined } from '@ant-design/icons';
+import { useRequest } from 'ahooks';
 import {
   Button,
   DatePicker,
@@ -16,12 +17,38 @@ import {
 } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
 import moment from 'moment';
-import { useEffect } from 'react';
+import { useState } from 'react';
+
+import { getPlan, savePlan } from '@/api/system/daily';
 
 const format = 'HH:mm';
 
 export const Plan = () => {
   const [form] = useForm();
+  const [date, setDate] = useState(moment().format('YYYYMMDD'));
+
+  const { loading, data } = useRequest(() => getPlan({ date }), {
+    manual: false,
+    refreshDeps: [date],
+    onSuccess: () => {
+      message.success('数据获取成功');
+      const table =
+        data.length > 0
+          ? data.map((item, index) => {
+              const completion_time = moment(item.completion_time, 'HH:mm');
+              return { key: index, ...item, completion_time };
+            })
+          : [];
+      form.setFieldsValue({ table });
+    }
+  });
+
+  const { run } = useRequest(savePlan, {
+    manual: true,
+    onSuccess: () => {
+      message.success('保存成功');
+    }
+  });
 
   const columns: any = [
     {
@@ -153,7 +180,7 @@ export const Plan = () => {
       <Button
         type="dashed"
         onClick={() => {
-          const { table } = form.getFieldsValue();
+          const { table = [] } = form.getFieldsValue();
           table.push({
             key: table.length + 1,
             content: '',
@@ -172,32 +199,38 @@ export const Plan = () => {
     </div>
   );
 
-  useEffect(() => {
-    form.setFieldsValue({
-      table: [
-        {
-          key: 1,
-          content: '杀死知更鸟',
-          target: '全部干掉',
-          priority: 'A',
-          completion_time: moment('12:06', 'HH:mm'),
-          completion_degree: 80
-        },
-        {
-          key: 2,
-          content: '探访基层',
-          target: '走访200户',
-          priority: 'C',
-          completion_time: moment('14:50', 'HH:mm'),
-          completion_degree: 40
-        }
-      ]
-    });
-  }, []);
+  // useEffect(() => {
+  //   form.setFieldsValue({
+  //     table: [
+  //       {
+  //         key: 1,
+  //         content: '杀死知更鸟',
+  //         target: '全部干掉',
+  //         priority: 'A',
+  //         completion_time: moment('12:06', 'HH:mm'),
+  //         completion_degree: 80
+  //       },
+  //       {
+  //         key: 2,
+  //         content: '探访基层',
+  //         target: '走访200户',
+  //         priority: 'C',
+  //         completion_time: moment('14:50', 'HH:mm'),
+  //         completion_degree: 40
+  //       }
+  //     ]
+  //   });
+  // }, []);
 
   const onFinish = (value: any) => {
-    console.log(value);
-    message.success('保存成功');
+    const { date: newdate, table } = value;
+    const date = newdate.format('YYYYMMDD');
+    const plans = table.map(item => {
+      item.completion_time = item.completion_time.format('kk:mm');
+      return item;
+    });
+    const param = { date, plans };
+    run(param);
   };
 
   return (
@@ -205,16 +238,22 @@ export const Plan = () => {
       <Form form={form} onFinish={onFinish}>
         <Form.Item name="table" valuePropName="dataSource">
           <Table
+            loading={loading}
             columns={columns}
             footer={() => Footer}
             title={() => (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Form.Item name="date" initialValue={moment()} noStyle>
-                  <DatePicker />
+                  <DatePicker
+                    onChange={value => {
+                      const newDate = value?.format('YYYYMMDD');
+                      setDate(newDate ?? '');
+                    }}
+                  />
                 </Form.Item>
                 <Form.Item noStyle>
                   <Button type="primary" htmlType="submit" size="large">
-                    保存
+                    保存提交
                   </Button>
                 </Form.Item>
               </div>

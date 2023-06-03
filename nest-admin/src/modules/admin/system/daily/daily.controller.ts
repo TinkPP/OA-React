@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
   ApiSecurity,
   ApiTags,
@@ -24,7 +24,25 @@ export class SysDailyController {
 
   @ApiOperation({ summary: '保存每日日报' })
   @Post('saveSummarize')
-  async info(@AdminUser() user: IAdminUser, @Body() dto: any): Promise<void> {
+  async saveSummarize(
+    @AdminUser() user: IAdminUser,
+    @Body() dto: any,
+  ): Promise<void> {
     return await this.dailyService.saveSummarize(user.uid, dto);
+  }
+
+  @ApiOperation({ summary: '获取每日计划' })
+  @Post('getPlan')
+  async getPlan(@AdminUser() user: IAdminUser, @Body() dto: any): Promise<any> {
+    return await this.dailyService.getPlan(user.uid, dto);
+  }
+
+  @ApiOperation({ summary: '保存每日计划' })
+  @Post('savePlan')
+  async savePlan(
+    @AdminUser() user: IAdminUser,
+    @Body() dto: string,
+  ): Promise<void> {
+    return await this.dailyService.savePlan(user.uid, dto);
   }
 }

@@ -75,7 +75,7 @@ export const Summarize = () => {
           <Card style={{ width: '100%' }} loading={loading}>
             <div className="summarize-top">
               <div className="summarize-title">上一篇总结</div>
-              <div className="summarize-time">{moment().format('YYYY年MM月DD日')}</div>
+              <div className="summarize-time">{moment(data?.summarize_last?.date).format('YYYY年MM月DD日')}</div>
             </div>
 
             <div className="summarize-question">今天我在哪些方面做得比较好?</div>

@@ -1,13 +1,9 @@
-import { promises } from 'dns';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import SysDailyPlan from 'src/entities/admin/sys-daily-plan.entity';
 import { Repository } from 'typeorm';
 import moment from 'moment';
 import { ROOT_ROLE_ID } from '@/modules/admin/admin.constants';
-import { SysRoleService } from '@/modules/admin/system/role/role.service';
-import { AdminWSService } from '@/modules/ws/admin-ws.service';
-import { RedisService } from '@/shared/services/redis.service';
 import SysDailySummarize from '@/entities/admin/sys-daily-summarize.entity';
 
 @Injectable()
@@ -17,11 +13,7 @@ export class SysDailyService {
     private dailyPlanRepository: Repository<SysDailyPlan>,
     @InjectRepository(SysDailySummarize)
     private dailySummarizeRepository: Repository<SysDailySummarize>,
-
-    private redisService: RedisService,
     @Inject(ROOT_ROLE_ID) private rootRoleId: number,
-    private roleService: SysRoleService,
-    private adminWSService: AdminWSService,
   ) {}
 
   // 获取每日日报内容
@@ -67,5 +59,27 @@ export class SysDailyService {
       });
       return summarize;
     }
+  }
+
+  //获取日计划数据
+  async getPlan(uid: number, dto: any) {
+    const plans = await this.dailyPlanRepository.find({
+      where: {
+        date: dto.date,
+        userId: uid,
+      },
+    });
+    return plans;
+  }
+
+  //保存每日计划
+  async savePlan(uid: number, dto: any) {
+    const date = dto.date;
+    const plans = dto.plans.map((item) => {
+      return { date, userId: uid, ...item };
+    });
+    await this.dailyPlanRepository.delete({ date, userId: uid });
+    const res = await this.dailyPlanRepository.save(plans);
+    return res;
   }
 }
